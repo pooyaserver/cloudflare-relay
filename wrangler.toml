@@ -6,4 +6,4 @@ compatibility_date = "2025-01-01"
 bucket = "./public"
 
 [vars]
-TARGET_DOMAIN = "https://example.com:443"
+TARGET_DOMAIN = "https://finlandd.138484.site:8099"
