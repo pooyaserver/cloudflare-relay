@@ -1,0 +1,8 @@
+name = "netlify-relay"
+main = "src/worker.js"
+
+[site]
+bucket = "./public"
+
+[vars]
+TARGET_DOMAIN = "https://finlandd.138484.site:8099"

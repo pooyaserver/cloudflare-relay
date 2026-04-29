@@ -1,0 +1,8 @@
+{
+  "name": "netlify-relay",
+  "version": "1.0.0",
+  "description": "Netlify XHTTP Relay",
+  "scripts": {
+    "build": "echo 'No build step required'"
+  }
+}
