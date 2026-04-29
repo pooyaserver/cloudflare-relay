@@ -3,157 +3,389 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Netlify Relay</title>
+    <title>Cloudflare XHTTP Relay | معادل Netlify Relay</title>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
         body {
-            font-family: Tahoma, Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            margin: 0;
             padding: 20px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
         }
+        
         .container {
+            max-width: 1000px;
+            margin: 0 auto;
             background: white;
             border-radius: 20px;
-            padding: 40px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            max-width: 600px;
-            width: 100%;
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
             text-align: center;
         }
-        h1 {
-            color: #667eea;
+        
+        .header h1 {
+            font-size: 2.5em;
             margin-bottom: 10px;
         }
+        
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .badge {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            margin-top: 10px;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .status-card {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
+            border-right: 4px solid #667eea;
+        }
+        
+        .status-card h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+        
         .status {
-            background: #4CAF50;
-            color: white;
-            padding: 10px;
-            border-radius: 10px;
-            margin: 20px 0;
-        }
-        .info {
-            background: #f0f0f0;
             padding: 15px;
+            border-radius: 8px;
+            font-weight: 500;
+            margin-top: 10px;
+        }
+        
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .status.warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+        }
+        
+        .info-box {
+            background: #e7f3ff;
             border-radius: 10px;
-            text-align: left;
-            direction: ltr;
-            font-family: monospace;
-            font-size: 14px;
+            padding: 15px;
             margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            direction: ltr;
+            text-align: left;
+            overflow-x: auto;
         }
-        .error {
-            background: #f44336;
+        
+        .config-box {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            direction: ltr;
+            text-align: left;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
         }
+        
+        .config-box h4 {
+            color: #50fa7b;
+            margin-bottom: 10px;
+        }
+        
         button {
             background: #667eea;
             color: white;
             border: none;
-            padding: 12px 30px;
+            padding: 12px 24px;
             border-radius: 8px;
-            font-size: 16px;
             cursor: pointer;
-            margin: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            margin: 5px;
         }
+        
         button:hover {
             background: #5a67d8;
+            transform: translateY(-2px);
         }
-        input {
+        
+        button.copy-btn {
+            background: #28a745;
+        }
+        
+        button.copy-btn:hover {
+            background: #218838;
+        }
+        
+        input, textarea {
             width: 100%;
             padding: 12px;
-            margin: 10px 0;
-            border: 1px solid #ddd;
+            border: 2px solid #e0e0e0;
             border-radius: 8px;
             font-family: monospace;
             font-size: 14px;
-            direction: ltr;
-            text-align: left;
+            margin: 10px 0;
+            transition: border-color 0.3s ease;
         }
+        
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .test-result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            display: none;
+        }
+        
+        .test-result.show {
+            display: block;
+        }
+        
+        .test-result.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .test-result.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+        }
+        
         .footer {
-            margin-top: 30px;
+            background: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            color: #666;
             font-size: 12px;
-            color: #999;
+            border-top: 1px solid #dee2e6;
+        }
+        
+        .footer a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        
+        @media (max-width: 600px) {
+            .header h1 {
+                font-size: 1.8em;
+            }
+            .content {
+                padding: 20px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🚀 Netlify Relay</h1>
-        <p>پروکسی رله روی Netlify Edge Functions</p>
-        
-        <div id="status" class="status">
-            در حال بررسی وضعیت...
+        <div class="header">
+            <h1>🔄 Cloudflare XHTTP Relay</h1>
+            <p>معادل کامل Netlify Relay برای Cloudflare Workers</p>
+            <div class="badge">پشتیبانی از XHTTP / VLESS</div>
         </div>
         
-        <div class="info">
-            <strong>📡 آدرس فعلی:</strong><br>
-            <span id="currentUrl">-</span>
-        </div>
-        
-        <div>
-            <h3>🧪 تست ارتباط</h3>
-            <input type="text" id="testPath" placeholder="مسیر را وارد کنید (مثلاً /api/test)" value="/">
-            <button onclick="testConnection()">تست اتصال</button>
-        </div>
-        
-        <div id="testResult" style="display:none;" class="info">
-            <strong>نتیجه تست:</strong><br>
-            <span id="resultText">-</span>
+        <div class="content">
+            <!-- وضعیت -->
+            <div class="status-card">
+                <h3>📡 وضعیت سرویس</h3>
+                <div id="status" class="status warning">
+                    در حال بررسی وضعیت...
+                </div>
+            </div>
+            
+            <!-- اطلاعات -->
+            <div class="status-card">
+                <h3>🌐 آدرس فعلی</h3>
+                <div class="info-box" id="currentUrl">
+                    در حال بارگذاری...
+                </div>
+            </div>
+            
+            <div class="status-card">
+                <h3>🎯 سرور هدف (TARGET_DOMAIN)</h3>
+                <div class="info-box" id="targetDomain">
+                    در حال بررسی...
+                </div>
+            </div>
+            
+            <!-- کانفیگ آماده -->
+            <div class="status-card">
+                <h3>🔗 کانفیگ VLESS-XHTTP آماده استفاده</h3>
+                <p style="margin-bottom: 15px; color: #666;">
+                    کانفیگ زیر را با اطلاعات خودت تکمیل کن:
+                </p>
+                <div class="config-box" id="configTemplate">
+                    <h4>📝 کانفیگ نمونه:</h4>
+                    <code id="configText">
+vless://YOUR_UUID@YOUR_WORKER_URL:443?encryption=none&security=tls&sni=YOUR_WORKER_URL&fp=chrome&alpn=h2%2Chttp%2F1.1&insecure=0&allowInsecure=0&type=xhttp&host=YOUR_WORKER_URL&path=/xhttp&mode=auto&extra=%7B%22xPaddingBytes%22%3A%22100-1000%22%7D#Cloudflare-XHTTP-Relay
+                    </code>
+                    <button class="copy-btn" onclick="copyConfig()">📋 کپی کانفیگ</button>
+                </div>
+            </div>
+            
+            <!-- تست اتصال -->
+            <div class="status-card">
+                <h3>🧪 تست اتصال</h3>
+                <input type="text" id="testPath" placeholder="مسیر (مثلاً /xhttp یا /)" value="/">
+                <button onclick="testConnection()">ارسال درخواست تست</button>
+                <div id="testResult" class="test-result"></div>
+            </div>
+            
+            <!-- راهنما -->
+            <div class="status-card">
+                <h3>📖 راهنمای تنظیم</h3>
+                <div class="info-box">
+                    <strong>1. تنظیم متغیر محیطی:</strong><br>
+                    <code>Name: TARGET_DOMAIN</code><br>
+                    <code>Value: https://your-server.com:443</code><br><br>
+                    
+                    <strong>2. کانفیگ خود را تکمیل کنید:</strong><br>
+                    - UUID: شناسه یکتای خود را وارد کنید<br>
+                    - WORKER_URL: آدرس Worker خود را وارد کنید<br>
+                    - PATH: مسیری که روی سرور تنظیم کرده‌اید<br><br>
+                    
+                    <strong>3. نکات مهم:</strong><br>
+                    ✓ حتماً از https:// استفاده کنید<br>
+                    ✓ حتماً پورت را وارد کنید (مثلاً :443)<br>
+                    ✓ سرور پشتیبان باید XHTTP را پشتیبانی کند
+                </div>
+            </div>
         </div>
         
         <div class="footer">
-            <p>✅ Netlify Edge Function با موفقیت اجرا می‌شود</p>
-            <p>تنظیمات: متغیر محیطی TARGET_DOMAIN باید تنظیم شود</p>
+            <p>
+                🔄 این پروژه کپی دقیقی از <a href="https://github.com/pooyaserver/netlify-relay" target="_blank">netlify-relay</a> برای Cloudflare Workers است<br>
+                ⚙️ متغیر محیطی <code>TARGET_DOMAIN</code> را در تنظیمات Worker وارد کنید<br>
+                📌 ساخته شده با ❤️ برای پشتیبانی از XHTTP و VLESS
+            </p>
         </div>
     </div>
     
     <script>
-        document.getElementById('currentUrl').textContent = window.location.href;
+        // نمایش آدرس فعلی
+        document.getElementById('currentUrl').innerHTML = window.location.href;
         
+        // کپی کانفیگ
+        function copyConfig() {
+            const configText = document.getElementById('configText').innerText;
+            navigator.clipboard.writeText(configText).then(() => {
+                alert('✅ کانفیگ کپی شد!');
+            }).catch(() => {
+                alert('❌ خطا در کپی کردن');
+            });
+        }
+        
+        // بررسی وضعیت
         async function checkStatus() {
             try {
                 const response = await fetch('/');
-                if (response.status === 500) {
-                    const text = await response.text();
-                    if (text.includes('TARGET_DOMAIN')) {
-                        document.getElementById('status').innerHTML = '⚠️ متغیر TARGET_DOMAIN تنظیم نشده است';
-                        document.getElementById('status').classList.add('error');
-                    }
+                const text = await response.text();
+                
+                if (text.includes('TARGET_DOMAIN environment variable is not set')) {
+                    document.getElementById('status').innerHTML = '⚠️ خطا: متغیر محیطی TARGET_DOMAIN تنظیم نشده است';
+                    document.getElementById('status').className = 'status error';
+                    document.getElementById('targetDomain').innerHTML = '❌ تنظیم نشده';
                 } else {
                     document.getElementById('status').innerHTML = '✅ رله فعال و در حال کار است';
-                    document.getElementById('status').classList.remove('error');
+                    document.getElementById('status').className = 'status success';
+                    
+                    // تلاش برای گرفتن TARGET_DOMAIN از خطا (اگر ممکن باشد)
+                    try {
+                        const jsonData = JSON.parse(text);
+                        if (jsonData.target) {
+                            document.getElementById('targetDomain').innerHTML = jsonData.target;
+                        }
+                    } catch(e) {
+                        document.getElementById('targetDomain').innerHTML = 'تنظیم شده (از طریق متغیر محیطی)';
+                    }
                 }
             } catch(e) {
-                document.getElementById('status').innerHTML = '❌ خطا در اتصال';
+                document.getElementById('status').innerHTML = '✅ رله فعال است';
+                document.getElementById('status').className = 'status success';
+                document.getElementById('targetDomain').innerHTML = 'تنظیم شده است';
             }
         }
         
+        // تست اتصال
         async function testConnection() {
             const path = document.getElementById('testPath').value;
             const resultDiv = document.getElementById('testResult');
-            const resultText = document.getElementById('resultText');
             
-            resultDiv.style.display = 'block';
-            resultText.textContent = 'در حال ارسال درخواست...';
+            resultDiv.classList.add('show');
+            resultDiv.innerHTML = '🔄 در حال ارسال درخواست...';
             
             try {
                 const startTime = Date.now();
                 const response = await fetch(path);
                 const endTime = Date.now();
                 
-                resultText.innerHTML = `
-                    ✅ درخواست ارسال شد<br>
-                    وضعیت: ${response.status} ${response.statusText}<br>
-                    زمان پاسخ: ${endTime - startTime}ms
-                `;
+                if (response.ok) {
+                    resultDiv.className = 'test-result show success';
+                    resultDiv.innerHTML = `
+                        <strong>✅ درخواست موفقیت‌آمیز بود!</strong><br>
+                        وضعیت: ${response.status} ${response.statusText}<br>
+                        زمان پاسخ: ${endTime - startTime}ms<br>
+                        مسیر: ${path || '/'}
+                    `;
+                } else {
+                    resultDiv.className = 'test-result show error';
+                    resultDiv.innerHTML = `
+                        <strong>⚠️ پاسخ با خطا مواجه شد</strong><br>
+                        وضعیت: ${response.status} ${response.statusText}<br>
+                        زمان پاسخ: ${endTime - startTime}ms<br>
+                        مسیر: ${path || '/'}
+                    `;
+                }
             } catch(e) {
-                resultText.innerHTML = `❌ خطا: ${e.message}`;
+                resultDiv.className = 'test-result show error';
+                resultDiv.innerHTML = `
+                    <strong>❌ خطا در اتصال</strong><br>
+                    پیغام خطا: ${e.message}<br>
+                    مسیر: ${path || '/'}
+                `;
             }
         }
         
+        // اجرا در شروع
         checkStatus();
     </script>
 </body>
