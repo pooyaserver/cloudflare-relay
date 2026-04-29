@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Netlify Relay</title>
+    <style>
+        body {
+            font-family: Tahoma, Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        .status {
+            background: #4CAF50;
+            color: white;
+            padding: 10px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        .info {
+            background: #f0f0f0;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: left;
+            direction: ltr;
+            font-family: monospace;
+            font-size: 14px;
+            margin: 20px 0;
+        }
+        .error {
+            background: #f44336;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 10px;
+        }
+        button:hover {
+            background: #5a67d8;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 14px;
+            direction: ltr;
+            text-align: left;
+        }
+        .footer {
+            margin-top: 30px;
+            font-size: 12px;
+            color: #999;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Netlify Relay</h1>
+        <p>پروکسی رله روی Netlify Edge Functions</p>
+        
+        <div id="status" class="status">
+            در حال بررسی وضعیت...
+        </div>
+        
+        <div class="info">
+            <strong>📡 آدرس فعلی:</strong><br>
+            <span id="currentUrl">-</span>
+        </div>
+        
+        <div>
+            <h3>🧪 تست ارتباط</h3>
+            <input type="text" id="testPath" placeholder="مسیر را وارد کنید (مثلاً /api/test)" value="/">
+            <button onclick="testConnection()">تست اتصال</button>
+        </div>
+        
+        <div id="testResult" style="display:none;" class="info">
+            <strong>نتیجه تست:</strong><br>
+            <span id="resultText">-</span>
+        </div>
+        
+        <div class="footer">
+            <p>✅ Netlify Edge Function با موفقیت اجرا می‌شود</p>
+            <p>تنظیمات: متغیر محیطی TARGET_DOMAIN باید تنظیم شود</p>
+        </div>
+    </div>
+    
+    <script>
+        document.getElementById('currentUrl').textContent = window.location.href;
+        
+        async function checkStatus() {
+            try {
+                const response = await fetch('/');
+                if (response.status === 500) {
+                    const text = await response.text();
+                    if (text.includes('TARGET_DOMAIN')) {
+                        document.getElementById('status').innerHTML = '⚠️ متغیر TARGET_DOMAIN تنظیم نشده است';
+                        document.getElementById('status').classList.add('error');
+                    }
+                } else {
+                    document.getElementById('status').innerHTML = '✅ رله فعال و در حال کار است';
+                    document.getElementById('status').classList.remove('error');
+                }
+            } catch(e) {
+                document.getElementById('status').innerHTML = '❌ خطا در اتصال';
+            }
+        }
+        
+        async function testConnection() {
+            const path = document.getElementById('testPath').value;
+            const resultDiv = document.getElementById('testResult');
+            const resultText = document.getElementById('resultText');
+            
+            resultDiv.style.display = 'block';
+            resultText.textContent = 'در حال ارسال درخواست...';
+            
+            try {
+                const startTime = Date.now();
+                const response = await fetch(path);
+                const endTime = Date.now();
+                
+                resultText.innerHTML = `
+                    ✅ درخواست ارسال شد<br>
+                    وضعیت: ${response.status} ${response.statusText}<br>
+                    زمان پاسخ: ${endTime - startTime}ms
+                `;
+            } catch(e) {
+                resultText.innerHTML = `❌ خطا: ${e.message}`;
+            }
+        }
+        
+        checkStatus();
+    </script>
+</body>
+</html>
