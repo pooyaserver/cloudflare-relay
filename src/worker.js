@@ -1,11 +1,13 @@
-// Cloudflare Worker Relay - معادل exact netlify/edge-functions/relay.js
+// Cloudflare Worker Relay - مخصوص Cloudflare Workers
 
 export default {
   async fetch(request, env, ctx) {
     const TARGET_DOMAIN = env.TARGET_DOMAIN;
     
     if (!TARGET_DOMAIN) {
-      return new Response('Error: TARGET_DOMAIN environment variable is not set', { status: 500 });
+      return new Response('Error: TARGET_DOMAIN environment variable is not set', { 
+        status: 500 
+      });
     }
     
     try {
