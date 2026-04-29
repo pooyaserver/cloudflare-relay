@@ -1,29 +1,9 @@
-name = "cloudflare-xhttp-relay"
+name = "cloudflare-relay"
 main = "src/worker.js"
 compatibility_date = "2025-01-01"
 
-# تنظیمات سایت استاتیک
 [site]
 bucket = "./public"
 
-# متغیرهای محیطی (پیش‌فرض - باید خودت مقداردهی کنی)
 [vars]
 TARGET_DOMAIN = "https://example.com:443"
-
-# محدودیت‌ها
-[limits]
-cpu_ms = 50
-subrequests = 50
-
-# مشاهده لاگ‌ها
-[observability]
-enabled = true
-head_sampling_rate = 1
-
-# تنظیمات محیط تولید
-[env.production]
-vars = { TARGET_DOMAIN = "https://your-domain.com:443" }
-
-# تنظیمات محیط توسعه
-[env.development]
-vars = { TARGET_DOMAIN = "https://localhost:443" }
